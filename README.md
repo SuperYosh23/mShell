@@ -12,13 +12,12 @@ mShell is a beautifully styled, fully functional Linux shell implemented in Pyth
 - **Signal handling** for Ctrl+C and Ctrl+Z
 
 ### Visual Features 🎨
-- **Modern Unicode icons** throughout the interface (🐚 📁 🏠 ⚡ ✨)
+- **Modern Unicode icons** throughout the interface (❯ 📁 🏠 ⚙ ✨)
 - **Colorful terminal output** with ANSI color codes
-- **Styled prompt** with user@hostname and directory icons
-- **Beautiful startup screen** with animated welcome message
+- **Styled prompt** with directory display and path abbreviations
+- **Beautiful startup screen** with welcome message
 - **Enhanced error messages** with visual indicators
 - **Professional help display** with organized sections
-- **Theme system** with multiple color schemes (default, dark, light, cyberpunk, minimal)
 
 ### Advanced Features
 - **Startup commands**: Run any command when shell starts
@@ -47,33 +46,32 @@ export MSHELL_STARTUP="neofetch"
 python3 mshell.py
 
 # Configuration file (persistent settings)
-mshell --config set startup_command "neofetch"  # Save to config file
+python3 mshell.py --config set startup_command "neofetch"  # Save to config file
 ```
 
 ## Installation
 
-### Easy Installation (Recommended)
+### Manual Installation
+1. **Make the script executable:**
 ```bash
-# Run the installation script
-./install.sh
+chmod +x mshell.py
 ```
 
-### Manual Installation
-1. **Copy mShell to system directory:**
+2. **Copy mShell to system directory:**
 ```bash
 mkdir -p ~/.local/bin
 cp mshell.py ~/.local/bin/mshell
 chmod +x ~/.local/bin/mshell
 ```
 
-2. **Add to PATH:**
+3. **Add to PATH:**
 ```bash
 # Add to your shell profile (~/.bashrc, ~/.zshrc, or ~/.profile)
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-3. **Verify installation:**
+4. **Verify installation:**
 ```bash
 which mshell
 # Should show: ~/.local/bin/mshell
@@ -97,8 +95,10 @@ mshell --config set startup_command "neofetch"
 - `echo [text]` - Print text to stdout
 - `help` - Display help information
 - `clear` - Clear the terminal screen
-- `theme` - Manage color themes
 - `exit` - Exit the shell
+
+### External Commands
+- `mshell config` - Open configuration interface selector (within mShell)
 
 ### Examples
 ```bash
@@ -139,7 +139,7 @@ mshell --config unset startup_command
 
 ### Configuration Options
 - `startup_command` - Command to run when shell starts
-- `theme` - Color theme to use (default, dark, light, cyberpunk, minimal)
+- `full_path_prompt` - Always show full path in prompt (true/false)
 
 ### Priority Order
 Configuration values are loaded in this priority order:
@@ -147,72 +147,34 @@ Configuration values are loaded in this priority order:
 2. Environment variable (`MSHELL_STARTUP`)
 3. Configuration file (`~/.mshell_config.json`)
 
-## Theming
+## Configuration Interfaces
 
-mShell includes a powerful theming system that allows you to customize the appearance of the shell.
+mShell provides multiple configuration interfaces to suit different preferences:
 
-### Available Themes
-- **default** - The original mShell color scheme, no terminal changes
-- **dark** - Black background with bright white text, enhanced colors
-- **light** - White background with black text, optimized for light terminals
-- **cyberpunk** - Black background with cyan text, vibrant magenta/cyan accents
-- **minimal** - No terminal changes, minimal mShell colors only
+### TUI Interface (Terminal UI)
+A curses-based terminal interface with keyboard navigation:
+- Up/Down arrows to navigate options
+- Enter to edit values
+- d to delete options
+- s to save and exit
+- q to quit
 
-### Theme Commands
+### CLI Interface (Command Line)
+A simple command-line interface for quick configuration changes.
+
+### GUI Interface (Graphical)
+A tkinter-based graphical interface for desktop environments.
+
+### Accessing Configuration
 ```bash
-# List available themes
-theme list
-
-# Set a theme
-theme set dark
-theme set cyberpunk
-
-# Show current theme
-theme current
-
-# Reset to default theme
-theme reset
-
-# Show theme help
-theme
-```
-
-### Theme Configuration
-You can also set themes through the configuration system:
-
-```bash
-# Set theme via config
-mshell --config set theme dark
-
-# Or use the TUI
+# From within mShell
 mshell config
+
+# From command line
+python3 mshell.py --config show
+python3 mshell.py --config set startup_command "neofetch"
+python3 mshell.py --config set full_path_prompt true
 ```
-
-### Custom Themes
-Advanced users can create custom themes by adding them to the configuration file:
-
-```json
-{
-  "theme": "my_custom",
-  "custom_themes": {
-    "my_custom": {
-      "prompt_dir": "\033[90m",
-      "prompt_arrow": "\033[92m",
-      "error": "\033[91m",
-      "warning": "\033[93m",
-      "info": "\033[96m",
-      "success": "\033[92m",
-      "terminal_bg": "\033[40m",
-      "terminal_text": "\033[97m"
-    }
-  }
-}
-```
-
-#### Terminal Color Options:
-- `terminal_bg` - Background color (use `Colors.BG_*` constants)
-- `terminal_text` - Default text color (use `Colors.*` constants)
-- Set to `null`/`None` to leave unchanged
 
 ## Implementation Details
 
@@ -221,12 +183,14 @@ Advanced users can create custom themes by adding them to the configuration file
 - **Command parsing**: Handles pipes, redirections, and quoting
 - **Process management**: Uses subprocess for external commands
 - **Signal handling**: Graceful handling of interrupts
+- **Configuration system**: JSON-based configuration with multiple interfaces
 
 ### Key Components
 1. **Command Parser**: Parses complex command lines with pipes and redirections
 2. **Built-in Handler**: Executes shell built-in commands
 3. **External Executor**: Runs external programs via subprocess
 4. **Pipeline Manager**: Handles command pipelines with proper I/O redirection
+5. **Configuration Manager**: TUI, CLI, and GUI interfaces for settings management
 
 ### File Structure
 ```
@@ -238,7 +202,7 @@ README.md          # This documentation
 
 - Python 3.6+
 - Linux/Unix-like operating system
-- Standard Python libraries: `os`, `sys`, `subprocess`, `shlex`, `signal`, `readline`, `pathlib`
+- Standard Python libraries: `os`, `sys`, `subprocess`, `shlex`, `signal`, `readline`, `pathlib`, `json`, `curses`, `tkinter`
 
 ## Security Considerations
 
@@ -250,7 +214,7 @@ Feel free to extend the shell with additional features:
 - More built-in commands
 - Job control and background processes
 - Environment variable management
-- Configuration file support
+- Enhanced configuration options
 - Custom prompt formatting
 
 ## License
