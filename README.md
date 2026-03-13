@@ -1,6 +1,9 @@
-# mShell - A Modern Linux Shell in Python
+<div align="center">
+  <img src="https://github.com/SuperYosh23/mShell/blob/main/Untitled%20drawing(10).png?raw=true" alt="Centered image">
+</div>
 
-mShell is a beautifully styled, fully functional Linux shell implemented in Python that features modern Unicode icons, colorful output, and an attractive interface. It supports common shell features including built-in commands, external command execution, pipes, and I/O redirection.
+
+<h3 style="text-align:center;">mShell is a beautifully styled, fully functional Linux shell implemented in Python that features modern Unicode icons, colorful output, and an attractive interface. It supports common shell features including built-in commands, external command execution, pipes, and I/O redirection.</p>
 
 ## Features
 
