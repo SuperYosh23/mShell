@@ -217,6 +217,6 @@ Feel free to extend the shell with additional features:
 - Enhanced configuration options
 - Custom prompt formatting
 
-## License
+## DISCLAIMER
 
-This project is open source and available under the MIT License.
+This is project is almost entirely AI genarated, including the majority of this readme.
