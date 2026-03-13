@@ -11,7 +11,7 @@ mShell is a beautifully styled, fully functional Linux shell implemented in Pyth
 - **Command history** with arrow key navigation
 - **Signal handling** for Ctrl+C and Ctrl+Z
 
-### Visual Features 🎨
+### Visual Features 
 - **Modern Unicode icons** throughout the interface (❯ 📁 🏠 ⚙ ✨)
 - **Colorful terminal output** with ANSI color codes
 - **Styled prompt** with directory display and path abbreviations
