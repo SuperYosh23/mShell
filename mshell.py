@@ -84,29 +84,118 @@ class DefaultColors:
 # Global color instance
 default_colors = DefaultColors()
 
-# Unicode icons for visual enhancement (non-emoji)
+# Font Awesome icons with Unicode fallbacks
 class Icons:
-    SHELL = '❯'
-    FOLDER = ''
-    HOME = ''
-    FILE = ''
-    GEAR = '⚙'
-    ROCKET = '🚀'
-    SPARKLE = '✨'
-    ARROW_RIGHT = '❯'
-    ARROW_LEFT = '❮'
-    CHECK = '✓'
-    CROSS = '✗'
-    WARNING = '⚠'
-    INFO = 'ℹ'
-    LIGHTNING = '⚡'
-    FIRE = '🔥'
-    STAR = '★'
-    CROWN = '♛'
-    DOT = '•'
-    SEPARATOR = '│'
-    BRANCH = '├─'
-    END = '└─'
+    def __init__(self, use_unicode=False):
+        self.use_unicode = use_unicode
+        
+        # Font Awesome icon mappings (using Unicode equivalents as fallbacks)
+        self.icons = {
+            'SHELL': {
+                'font_awesome': '\uf120',  # fa-terminal
+                'unicode': '❯'
+            },
+            'FOLDER': {
+                'font_awesome': '\uf07b',  # fa-folder
+                'unicode': '🗀'
+            },
+            'HOME': {
+                'font_awesome': '\uf015',  # fa-home
+                'unicode': '⏏'
+            },
+            'FILE': {
+                'font_awesome': '\uf15b',  # fa-file
+                'unicode': '🗎'
+            },
+            'GEAR': {
+                'font_awesome': '\uf013',  # fa-cog
+                'unicode': '⚙'
+            },
+            'ROCKET': {
+                'font_awesome': '\uf135',  # fa-rocket
+                'unicode': '🚀'
+            },
+            'SPARKLE': {
+                'font_awesome': '\uf0e7',  # fa-bolt (closest to sparkle)
+                'unicode': '✨'
+            },
+            'ARROW_RIGHT': {
+                'font_awesome': '\uf061',  # fa-arrow-right
+                'unicode': '❯'
+            },
+            'ARROW_LEFT': {
+                'font_awesome': '\uf060',  # fa-arrow-left
+                'unicode': '❮'
+            },
+            'CHECK': {
+                'font_awesome': '\uf00c',  # fa-check
+                'unicode': '✓'
+            },
+            'CROSS': {
+                'font_awesome': '\uf00d',  # fa-times
+                'unicode': '✗'
+            },
+            'WARNING': {
+                'font_awesome': '\uf071',  # fa-exclamation-triangle
+                'unicode': '⚠'
+            },
+            'INFO': {
+                'font_awesome': '\uf05a',  # fa-info-circle
+                'unicode': 'ℹ'
+            },
+            'LIGHTNING': {
+                'font_awesome': '\uf0e7',  # fa-bolt
+                'unicode': '⚡'
+            },
+            'FIRE': {
+                'font_awesome': '\uf06d',  # fa-fire
+                'unicode': '🔥'
+            },
+            'STAR': {
+                'font_awesome': '\uf005',  # fa-star
+                'unicode': '★'
+            },
+            'CROWN': {
+                'font_awesome': '\uf521',  # fa-crown
+                'unicode': '♛'
+            },
+            'DOT': {
+                'font_awesome': '\uf111',  # fa-circle
+                'unicode': '•'
+            },
+            'SEPARATOR': {
+                'font_awesome': '\uf7d9',  # fa-grip-lines-vertical
+                'unicode': '│'
+            },
+            'BRANCH': {
+                'font_awesome': '\uf126',  # fa-code-branch
+                'unicode': '├─'
+            },
+            'END': {
+                'font_awesome': '\uf0da',  # fa-caret-right (closest to tree end)
+                'unicode': '└─'
+            }
+        }
+    
+    def __getattr__(self, name):
+        """Get icon attribute, choosing Font Awesome or Unicode based on config"""
+        if name in self.icons:
+            icon_set = self.icons[name]
+            
+            # Always use Unicode for these specific icons
+            always_unicode = ['SHELL', 'ARROW_RIGHT', 'ARROW_LEFT', 'DOT', 'CROWN', 
+                          'SEPARATOR', 'BRANCH', 'END', 'CHECK', 'CROSS']
+            
+            if name in always_unicode:
+                return icon_set['unicode']
+            elif self.use_unicode:
+                return icon_set['unicode']
+            else:
+                return icon_set['font_awesome']
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+
+# Global icon instance - will be updated with config
+icons = Icons(use_unicode=False)
 
 class mShell:
     def __init__(self, startup_command=None):
@@ -116,9 +205,52 @@ class mShell:
         self.config_file = Path.home() / ".mshell_config.json"
         self.startup_command = startup_command
         self.full_path_prompt = False  # Default: show abbreviated path
+        self.use_unicode_icons = False  # Default: use Font Awesome icons
         
         # Set shell environment variable so external programs recognize mShell
         os.environ['SHELL'] = 'mshell'
+        
+        # Set terminal info for neofetch and other tools
+        # Get the actual terminal being used
+        actual_terminal = os.environ.get('TERM', 'unknown')
+        if 'TERM_PROGRAM' in os.environ:
+            # macOS Terminal.app, iTerm2, etc.
+            actual_terminal = os.environ['TERM_PROGRAM']
+        elif 'COLORTERM' in os.environ:
+            # Modern terminals with color support
+            actual_terminal = os.environ['COLORTERM']
+        elif 'TERMINAL_EMULATOR' in os.environ:
+            # Some Linux terminals set this
+            actual_terminal = os.environ['TERMINAL_EMULATOR']
+        
+        # Set environment variables that neofetch and other tools check
+        os.environ['TERM_PROGRAM'] = actual_terminal
+        os.environ['TERM'] = os.environ.get('TERM', 'xterm-256color')  # Ensure TERM is set
+        
+        # Override shell detection to show mShell instead of python3
+        os.environ['_'] = 'mshell'  # Some tools check this for the current shell
+        # Clear other shell versions by removing them if they exist
+        if 'BASH_VERSION' in os.environ:
+            del os.environ['BASH_VERSION']
+        if 'ZSH_VERSION' in os.environ:
+            del os.environ['ZSH_VERSION']
+        
+        # Handle restart directory if coming from a restart
+        if 'MSHELL_RESTART_DIR' in os.environ:
+            restart_dir = os.environ['MSHELL_RESTART_DIR']
+            try:
+                os.chdir(restart_dir)
+                del os.environ['MSHELL_RESTART_DIR']
+            except (FileNotFoundError, PermissionError):
+                pass  # If we can't change to the restart dir, just continue
+        
+        # Restore terminal info if coming from a restart
+        if 'MSHELL_TERM_PROGRAM' in os.environ:
+            os.environ['TERM_PROGRAM'] = os.environ['MSHELL_TERM_PROGRAM']
+            del os.environ['MSHELL_TERM_PROGRAM']
+        if 'MSHELL_TERM' in os.environ:
+            os.environ['TERM'] = os.environ['MSHELL_TERM']
+            del os.environ['MSHELL_TERM']
         
         # Load configuration
         self.load_config()
@@ -146,6 +278,13 @@ class mShell:
                 
                 # Apply full path prompt setting
                 self.full_path_prompt = config.get('full_path_prompt', False)
+                
+                # Apply unicode icons setting
+                self.use_unicode_icons = config.get('use_unicode_icons', False)
+                
+                # Update global icons instance with new setting
+                global icons
+                icons = Icons(use_unicode=self.use_unicode_icons)
                     
                 # Clean theme-related data from config if it exists
                 if 'theme' in config or 'custom_themes' in config:
@@ -172,7 +311,7 @@ class mShell:
             with open(self.config_file, 'w') as f:
                 json.dump(config, f, indent=2)
         except (PermissionError, OSError):
-            print(f"{Colors.RED}{Icons.CROSS} Could not save config file{Colors.RESET}")
+            print(f"{Colors.RED}{icons.CROSS} Could not save config file{Colors.RESET}")
     
     def setup_readline(self):
         """Setup readline for command history and tab completion"""
@@ -315,13 +454,13 @@ class mShell:
     
     def handle_sigint(self, signum, frame):
         """Handle Ctrl+C with sleek styling"""
-        print(f"\n{default_colors.get_color('warning')}{Icons.WARNING} Interrupted{Colors.RESET}")
+        print(f"\n{default_colors.get_color('warning')}{icons.WARNING} Interrupted{Colors.RESET}")
         print(f"{default_colors.get_color('description')}Use 'exit' to quit{Colors.RESET}")
         print(self.prompt, end='', flush=True)
     
     def handle_sigtstp(self, signum, frame):
         """Handle Ctrl+Z with sleek styling"""
-        print(f"\n{default_colors.get_color('warning')}{Icons.WARNING} Suspended{Colors.RESET}")
+        print(f"\n{default_colors.get_color('warning')}{icons.WARNING} Suspended{Colors.RESET}")
         print(f"{default_colors.get_color('description')}Use 'exit' to quit{Colors.RESET}")
         print(self.prompt, end='', flush=True)
     
@@ -339,23 +478,23 @@ class mShell:
             if self.current_dir.startswith(home_dir):
                 relative_path = self.current_dir[len(home_dir):].lstrip('/')
                 if relative_path:
-                    display_dir = f"{Icons.HOME} /{relative_path}"
+                    display_dir = f"{icons.HOME} /{relative_path}"
                 else:
-                    display_dir = Icons.HOME
+                    display_dir = icons.HOME
             else:
-                display_dir = f"{Icons.FOLDER} {self.current_dir}"
+                display_dir = f"{icons.FOLDER} {self.current_dir}"
             
             # If path is too long (>23 chars), show just current directory name
             if len(display_dir) > 23:
                 current_dir_name = os.path.basename(self.current_dir)
                 if self.current_dir == home_dir:
-                    display_dir = Icons.HOME  # Keep home icon for home directory
+                    display_dir = icons.HOME  # Keep home icon for home directory
                 else:
-                    display_dir = f"{Icons.FOLDER} {current_dir_name}"
+                    display_dir = f"{icons.FOLDER} {current_dir_name}"
         
         # Create a sleek, minimal prompt with default colors
         self.prompt = f"{default_colors.get_color('prompt_dir')}{display_dir}{Colors.RESET} "
-        self.prompt += f"{default_colors.get_color('prompt_arrow')}{Icons.ARROW_RIGHT}{Colors.RESET} "
+        self.prompt += f"{default_colors.get_color('prompt_arrow')}{icons.ARROW_RIGHT}{Colors.RESET} "
     
     def parse_command(self, command_line):
         """Parse command line into tokens, handling pipes and redirections"""
@@ -414,7 +553,7 @@ class mShell:
                     cmd_info['input'] = parts[i + 1]
                     i += 2
                 else:
-                    print(f"{Colors.RED}{Icons.CROSS} Missing input file after '<'{Colors.RESET}")
+                    print(f"{Colors.RED}{icons.CROSS} Missing input file after '<'{Colors.RESET}")
                     i += 1
             elif part == '>':
                 if i + 1 < len(parts):
@@ -422,7 +561,7 @@ class mShell:
                     cmd_info['append'] = False
                     i += 2
                 else:
-                    print(f"{Colors.RED}{Icons.CROSS} Missing output file after '>'{Colors.RESET}")
+                    print(f"{Colors.RED}{icons.CROSS} Missing output file after '>'{Colors.RESET}")
                     i += 1
             elif part == '>>':
                 if i + 1 < len(parts):
@@ -430,7 +569,7 @@ class mShell:
                     cmd_info['append'] = True
                     i += 2
                 else:
-                    print(f"{Colors.RED}{Icons.CROSS} Missing output file after '>>'{Colors.RESET}")
+                    print(f"{Colors.RED}{icons.CROSS} Missing output file after '>>'{Colors.RESET}")
                     i += 1
             else:
                 cmd_info['command'].append(part)
@@ -484,11 +623,11 @@ class mShell:
             self.update_prompt()
             return True
         except FileNotFoundError:
-            print(f"{default_colors.get_color('error')}{Icons.CROSS} {target}: No such directory{Colors.RESET}")
+            print(f"{default_colors.get_color('error')}{icons.CROSS} {target}: No such directory{Colors.RESET}")
         except NotADirectoryError:
-            print(f"{default_colors.get_color('error')}{Icons.CROSS} {target}: Not a directory{Colors.RESET}")
+            print(f"{default_colors.get_color('error')}{icons.CROSS} {target}: Not a directory{Colors.RESET}")
         except PermissionError:
-            print(f"{default_colors.get_color('error')}{Icons.CROSS} {target}: Permission denied{Colors.RESET}")
+            print(f"{default_colors.get_color('error')}{icons.CROSS} {target}: Permission denied{Colors.RESET}")
         
         return True
     
@@ -516,12 +655,12 @@ class mShell:
             # Update prompt to apply full_path_prompt setting
             self.update_prompt()
         except Exception as e:
-            print(f"{Colors.RED}{Icons.CROSS} Config selector error: {e}{Colors.RESET}")
+            print(f"{Colors.RED}{icons.CROSS} Config selector error: {e}{Colors.RESET}")
         return True
     
     def builtin_help(self):
         """Help built-in command with sleek styling"""
-        print(f"\n{default_colors.get_color('title')}{Icons.CROWN} mShell{Colors.RESET}")
+        print(f"\n{default_colors.get_color('title')}{icons.CROWN} mShell{Colors.RESET}")
         print(f"{default_colors.get_color('separator')}{'─' * 40}{Colors.RESET}\n")
         
         print(f"{default_colors.get_color('help_title')}Commands:{Colors.RESET}")
@@ -535,15 +674,17 @@ class mShell:
         ]
         
         for cmd, desc in commands:
-            print(f"  {default_colors.get_color('help_command')}{Icons.DOT}{Colors.RESET} {default_colors.get_color('command')}{cmd:<15}{Colors.RESET} {default_colors.get_color('description')}{desc}{Colors.RESET}")
+            print(f"  {default_colors.get_color('help_command')}{icons.DOT}{Colors.RESET} {default_colors.get_color('command')}{cmd:<15}{Colors.RESET} {default_colors.get_color('description')}{desc}{Colors.RESET}")
         
         print(f"\n{default_colors.get_color('help_title')}External Commands:{Colors.RESET}")
         external = [
             ("mshell config", "Open configuration interface selector"),
+            ("mshell config --file", "Open config file in nano editor"),
+            ("mshell restart", "Restart mShell"),
         ]
         
         for cmd, desc in external:
-            print(f"  {default_colors.get_color('help_external')}{Icons.DOT}{Colors.RESET} {default_colors.get_color('command')}{cmd:<35}{Colors.RESET} {default_colors.get_color('description')}{desc}{Colors.RESET}")
+            print(f"  {default_colors.get_color('help_external')}{icons.DOT}{Colors.RESET} {default_colors.get_color('command')}{cmd:<35}{Colors.RESET} {default_colors.get_color('description')}{desc}{Colors.RESET}")
         
         print(f"\n{default_colors.get_color('help_title')}Features:{Colors.RESET}")
         features = [
@@ -554,7 +695,7 @@ class mShell:
         ]
         
         for feature in features:
-            print(f"  {default_colors.get_color('help_feature')}{Icons.DOT}{Colors.RESET} {default_colors.get_color('command')}{feature}{Colors.RESET}")
+            print(f"  {default_colors.get_color('help_feature')}{icons.DOT}{Colors.RESET} {default_colors.get_color('command')}{feature}{Colors.RESET}")
         
         print(f"\n{default_colors.get_color('separator')}{'─' * 40}{Colors.RESET}\n")
         return True
@@ -573,13 +714,58 @@ class mShell:
         
         # Special handling for 'mshell config' command
         if len(command) >= 2 and command[0] == 'mshell' and command[1] == 'config':
+            # Handle 'mshell config --file' to open config in nano
+            if len(command) >= 3 and command[2] == '--file':
+                try:
+                    subprocess.run(['nano', str(self.config_file)], check=True)
+                except FileNotFoundError:
+                    print(f"{Colors.RED}{icons.CROSS} nano: command not found. Please install nano or use a different editor{Colors.RESET}")
+                except subprocess.CalledProcessError as e:
+                    print(f"{Colors.RED}{icons.CROSS} Failed to open config file: {e}{Colors.RESET}")
+                except Exception as e:
+                    print(f"{Colors.RED}{icons.CROSS} Error opening config file: {e}{Colors.RESET}")
+                return True
+            else:
+                # Original config interface selector
+                try:
+                    interface_selector = ConfigInterfaceSelector(self.config_file, self)
+                    interface_selector.run()
+                    # Reload config after interface closes
+                    self.load_config()
+                except Exception as e:
+                    print(f"{Colors.RED}{icons.CROSS} Config selector error: {e}{Colors.RESET}")
+                return True
+        
+        # Special handling for 'mshell' command (already in shell)
+        if len(command) == 1 and command[0] == 'mshell':
+            print(f"{default_colors.get_color('info')}{icons.INFO} You are already in mShell, silly!{Colors.RESET}")
+            print(f"{default_colors.get_color('description')}To restart mShell, run \"mshell restart\"{Colors.RESET}")
+            return True
+        
+        # Special handling for 'mshell restart' command
+        if len(command) == 2 and command[0] == 'mshell' and command[1] == 'restart':
+            print(f"{default_colors.get_color('info')}{icons.LIGHTNING} Restarting mShell...{Colors.RESET}")
+            # Save current working directory to pass to new instance
+            os.environ['MSHELL_RESTART_DIR'] = os.getcwd()
+            # Save terminal and shell info for restart
+            os.environ['MSHELL_TERM_PROGRAM'] = os.environ.get('TERM_PROGRAM', 'unknown')
+            os.environ['MSHELL_TERM'] = os.environ.get('TERM', 'xterm-256color')
+            # Restart by replacing current process with new mShell instance
             try:
-                interface_selector = ConfigInterfaceSelector(self.config_file, self)
-                interface_selector.run()
-                # Reload config after interface closes
-                self.load_config()
+                # Get the path to the current script
+                script_path = sys.argv[0] if sys.argv else 'mshell.py'
+                # Get any original startup command
+                startup_cmd = self.startup_command or os.environ.get('MSHELL_STARTUP')
+                
+                # Build restart command
+                restart_args = [sys.executable, script_path]
+                if startup_cmd:
+                    restart_args.extend(['--startup', startup_cmd])
+                
+                # Replace current process
+                os.execv(sys.executable, restart_args)
             except Exception as e:
-                print(f"{Colors.RED}{Icons.CROSS} Config selector error: {e}{Colors.RESET}")
+                print(f"{Colors.RED}{icons.CROSS} Failed to restart: {e}{Colors.RESET}")
             return True
         
         
@@ -618,11 +804,11 @@ class mShell:
             return True
             
         except FileNotFoundError:
-            print(f"{default_colors.get_color('error')}{Icons.CROSS} {command[0]}: command not found{Colors.RESET}")
+            print(f"{default_colors.get_color('error')}{icons.CROSS} {command[0]}: command not found{Colors.RESET}")
         except PermissionError:
-            print(f"{default_colors.get_color('error')}{Icons.CROSS} {command[0]}: permission denied{Colors.RESET}")
+            print(f"{default_colors.get_color('error')}{icons.CROSS} {command[0]}: permission denied{Colors.RESET}")
         except Exception as e:
-            print(f"{default_colors.get_color('error')}{Icons.CROSS} {e}{Colors.RESET}")
+            print(f"{default_colors.get_color('error')}{icons.CROSS} {e}{Colors.RESET}")
         
         return True
     
@@ -694,7 +880,7 @@ class mShell:
                 process.wait()
                 
         except Exception as e:
-            print(f"{default_colors.get_color('error')}{Icons.CROSS} Pipeline error: {e}{Colors.RESET}")
+            print(f"{default_colors.get_color('error')}{icons.CROSS} Pipeline error: {e}{Colors.RESET}")
     
     def execute_startup_command(self):
         """Execute the startup command and display its output"""
@@ -709,7 +895,7 @@ class mShell:
                 self.execute_pipeline(commands)
                 print()  # Add spacing after command output
         except Exception as e:
-            print(f"{default_colors.get_color('error')}{Icons.CROSS} Startup command error: {e}{Colors.RESET}\n")
+            print(f"{default_colors.get_color('error')}{icons.CROSS} Startup command error: {e}{Colors.RESET}\n")
     
     def run(self):
         """Main shell loop with sleek startup"""
@@ -738,13 +924,13 @@ class mShell:
                     self.execute_pipeline(commands)
                     
             except EOFError:
-                print(f"\n{default_colors.get_color('info')}{Icons.INFO} Goodbye{Colors.RESET}")
+                print(f"\n{default_colors.get_color('info')}{icons.INFO} Goodbye{Colors.RESET}")
                 self.running = False
             except KeyboardInterrupt:
-                print(f"\n{default_colors.get_color('warning')}{Icons.WARNING} Interrupted{Colors.RESET}")
+                print(f"\n{default_colors.get_color('warning')}{icons.WARNING} Interrupted{Colors.RESET}")
                 print(f"{default_colors.get_color('description')}Use 'exit' to quit{Colors.RESET}")
             except Exception as e:
-                print(f"{default_colors.get_color('error')}{Icons.CROSS} {e}{Colors.RESET}")
+                print(f"{default_colors.get_color('error')}{icons.CROSS} {e}{Colors.RESET}")
 
     def manage_config(self, action=None, key=None, value=None):
         """Manage configuration from command line"""
@@ -772,16 +958,16 @@ class mShell:
                 config[key] = value
                 with open(config_file, 'w') as f:
                     json.dump(config, f, indent=2)
-                print(f"{Colors.GREEN}{Icons.CHECK} Set {key} = {value}{Colors.RESET}")
+                print(f"{Colors.GREEN}{icons.CHECK} Set {key} = {value}{Colors.RESET}")
                 
             elif action == 'unset' and key:
                 if key in config:
                     del config[key]
                     with open(config_file, 'w') as f:
                         json.dump(config, f, indent=2)
-                    print(f"{Colors.GREEN}{Icons.CHECK} Unset {key}{Colors.RESET}")
+                    print(f"{Colors.GREEN}{icons.CHECK} Unset {key}{Colors.RESET}")
                 else:
-                    print(f"{Colors.YELLOW}{Icons.WARNING} {key} not found in config{Colors.RESET}")
+                    print(f"{Colors.YELLOW}{icons.WARNING} {key} not found in config{Colors.RESET}")
                     
             else:
                 print(f"{Colors.DIM}Usage:{Colors.RESET}")
@@ -792,7 +978,7 @@ class mShell:
                 print(f"  {Colors.WHITE}mshell --config set startup_command 'neofetch'{Colors.RESET}")
                 
         except Exception as e:
-            print(f"{Colors.RED}{Icons.CROSS} Config error: {e}{Colors.RESET}")
+            print(f"{Colors.RED}{icons.CROSS} Config error: {e}{Colors.RESET}")
 
 class ConfigTUI:
     def __init__(self, config_file, mshell_instance=None):
@@ -866,6 +1052,7 @@ class ConfigTUI:
         menu_items = [
             ("startup_command", "Command to run when shell starts"),
             ("full_path_prompt", "Always show full path in prompt"),
+            ("use_unicode_icons", "Use Unicode icons instead of Font Awesome"),
         ]
         
         # Use ASCII alternatives for icons in TUI
@@ -956,11 +1143,12 @@ class ConfigTUI:
             print("\nOptions:")
             print("  1. Set startup command")
             print("  2. Toggle full path prompt")
-            print("  3. Save and exit")
-            print("  4. Exit without saving")
+            print("  3. Toggle Unicode icons")
+            print("  4. Save and exit")
+            print("  5. Exit without saving")
             
             try:
-                choice = input("\nSelect option (1-4): ").strip()
+                choice = input("\nSelect option (1-5): ").strip()
                 
                 if choice == '1':
                     startup_cmd = input("Enter startup command: ").strip()
@@ -978,6 +1166,11 @@ class ConfigTUI:
                     self.config['full_path_prompt'] = new_value
                     print(f"Full path prompt: {'ON' if new_value else 'OFF'}")
                 elif choice == '3':
+                    current_value = self.config.get('use_unicode_icons', False)
+                    new_value = not current_value
+                    self.config['use_unicode_icons'] = new_value
+                    print(f"Unicode icons: {'ON' if new_value else 'OFF'}")
+                elif choice == '4':
                     # Clean config by removing theme-related data
                     clean_config = {}
                     for key, value in self.config.items():
@@ -991,7 +1184,7 @@ class ConfigTUI:
                     else:
                         print("Failed to save configuration.")
                     break
-                elif choice == '4':
+                elif choice == '5':
                     print("Exiting without saving.")
                     break
                 else:
@@ -1003,15 +1196,18 @@ class ConfigTUI:
     
     def edit_option(self, stdscr, key):
         """Edit a configuration option"""
-        if key == 'full_path_prompt':
-            # Handle boolean option
-            current_value = self.config.get('full_path_prompt', False)
+        if key in ['full_path_prompt', 'use_unicode_icons']:
+            # Handle boolean options
+            current_value = self.config.get(key, False)
             new_value = not current_value
-            self.config['full_path_prompt'] = new_value
+            self.config[key] = new_value
             
             # Show feedback
             h, w = stdscr.getmaxyx()
-            status_text = f"Full path prompt: {'ON' if new_value else 'OFF'}"
+            if key == 'full_path_prompt':
+                status_text = f"Full path prompt: {'ON' if new_value else 'OFF'}"
+            else:
+                status_text = f"Unicode icons: {'ON' if new_value else 'OFF'}"
             stdscr.addstr(h // 2, (w - len(status_text)) // 2, status_text, curses.color_pair(2) | curses.A_BOLD)
             stdscr.refresh()
             curses.napms(1500)  # Show for 1.5 seconds
@@ -1065,19 +1261,19 @@ class ConfigInterfaceSelector:
         
     def run(self):
         """Run the interface selection menu"""
-        print(f"\n{default_colors.get_color('title')}{Icons.GEAR} mShell Configuration{Colors.RESET}")
+        print(f"\n{default_colors.get_color('title')}{icons.GEAR} mShell Configuration{Colors.RESET}")
         print(f"{default_colors.get_color('separator')}{'─' * 40}{Colors.RESET}\n")
         
         print(f"{default_colors.get_color('help_title')}Choose configuration interface:{Colors.RESET}")
-        print(f"  {default_colors.get_color('help_command')}{Icons.DOT}{Colors.RESET} {default_colors.get_color('command')}1{Colors.RESET} - {default_colors.get_color('description')}TUI Interface (Terminal UI){Colors.RESET}")
-        print(f"  {default_colors.get_color('help_command')}{Icons.DOT}{Colors.RESET} {default_colors.get_color('command')}2{Colors.RESET} - {default_colors.get_color('description')}CLI Interface (Command Line){Colors.RESET}")
-        print(f"  {default_colors.get_color('help_command')}{Icons.DOT}{Colors.RESET} {default_colors.get_color('command')}3{Colors.RESET} - {default_colors.get_color('description')}GUI Interface (Graphical){Colors.RESET}")
-        print(f"  {default_colors.get_color('help_command')}{Icons.DOT}{Colors.RESET} {default_colors.get_color('command')}q{Colors.RESET} - {default_colors.get_color('description')}Quit{Colors.RESET}")
+        print(f"  {default_colors.get_color('help_command')}{icons.DOT}{Colors.RESET} {default_colors.get_color('command')}1{Colors.RESET} - {default_colors.get_color('description')}TUI Interface (Terminal UI){Colors.RESET}")
+        print(f"  {default_colors.get_color('help_command')}{icons.DOT}{Colors.RESET} {default_colors.get_color('command')}2{Colors.RESET} - {default_colors.get_color('description')}CLI Interface (Command Line){Colors.RESET}")
+        print(f"  {default_colors.get_color('help_command')}{icons.DOT}{Colors.RESET} {default_colors.get_color('command')}3{Colors.RESET} - {default_colors.get_color('description')}GUI Interface (Graphical){Colors.RESET}")
+        print(f"  {default_colors.get_color('help_command')}{icons.DOT}{Colors.RESET} {default_colors.get_color('command')}q{Colors.RESET} - {default_colors.get_color('description')}Quit{Colors.RESET}")
         print()
         
         while True:
             try:
-                choice = input(f"{default_colors.get_color('info')}{Icons.ARROW_RIGHT}{Colors.RESET} ").strip().lower()
+                choice = input(f"{default_colors.get_color('info')}{icons.ARROW_RIGHT}{Colors.RESET} ").strip().lower()
                 
                 if choice == '1':
                     self.launch_tui()
@@ -1089,13 +1285,13 @@ class ConfigInterfaceSelector:
                     self.launch_gui()
                     break
                 elif choice in ['q', 'quit', 'exit']:
-                    print(f"{default_colors.get_color('info')}{Icons.INFO} Cancelled{Colors.RESET}")
+                    print(f"{default_colors.get_color('info')}{icons.INFO} Cancelled{Colors.RESET}")
                     break
                 else:
-                    print(f"{default_colors.get_color('error')}{Icons.CROSS} Invalid choice. Please enter 1, 2, 3, or q{Colors.RESET}")
+                    print(f"{default_colors.get_color('error')}{icons.CROSS} Invalid choice. Please enter 1, 2, 3, or q{Colors.RESET}")
                     
             except (EOFError, KeyboardInterrupt):
-                print(f"\n{default_colors.get_color('info')}{Icons.INFO} Cancelled{Colors.RESET}")
+                print(f"\n{default_colors.get_color('info')}{icons.INFO} Cancelled{Colors.RESET}")
                 break
     
     def launch_tui(self):
@@ -1104,7 +1300,7 @@ class ConfigInterfaceSelector:
             config_tui = ConfigTUI(self.config_file, self.mshell)
             config_tui.run()
         except Exception as e:
-            print(f"{Colors.RED}{Icons.CROSS} TUI error: {e}{Colors.RESET}")
+            print(f"{Colors.RED}{icons.CROSS} TUI error: {e}{Colors.RESET}")
             print("Falling back to CLI interface...")
             self.launch_cli()
     
@@ -1114,7 +1310,7 @@ class ConfigInterfaceSelector:
             config_tui = ConfigTUI(self.config_file, self.mshell)
             config_tui.fallback_cli_config()
         except Exception as e:
-            print(f"{Colors.RED}{Icons.CROSS} CLI error: {e}{Colors.RESET}")
+            print(f"{Colors.RED}{icons.CROSS} CLI error: {e}{Colors.RESET}")
     
     def launch_gui(self):
         """Launch GUI configuration interface"""
@@ -1122,7 +1318,7 @@ class ConfigInterfaceSelector:
             config_gui = ConfigGUI(self.config_file, self.mshell)
             config_gui.run()
         except Exception as e:
-            print(f"{Colors.RED}{Icons.CROSS} GUI error: {e}{Colors.RESET}")
+            print(f"{Colors.RED}{icons.CROSS} GUI error: {e}{Colors.RESET}")
             print("Falling back to TUI interface...")
             self.launch_tui()
 
@@ -1197,6 +1393,13 @@ class ConfigGUI:
         full_path_check.grid(row=row, column=0, columnspan=2, sticky=tk.W, pady=5)
         row += 1
         
+        # Unicode icons option
+        self.unicode_icons_var = tk.BooleanVar(value=self.config.get('use_unicode_icons', False))
+        unicode_icons_check = ttk.Checkbutton(main_frame, text="Use Unicode icons instead of Font Awesome", 
+                                             variable=self.unicode_icons_var)
+        unicode_icons_check.grid(row=row, column=0, columnspan=2, sticky=tk.W, pady=5)
+        row += 1
+        
         # Description
         desc_label = ttk.Label(main_frame, text="Configure shell startup and prompt behavior", 
                               font=('TkDefaultFont', 9), foreground='gray')
@@ -1223,6 +1426,7 @@ class ConfigGUI:
         # Update config
         self.config['startup_command'] = self.startup_var.get()
         self.config['full_path_prompt'] = self.full_path_var.get()
+        self.config['use_unicode_icons'] = self.unicode_icons_var.get()
         
         # Save and close
         if self.save_config():
@@ -1263,7 +1467,7 @@ def main():
             config_tui = ConfigTUI(shell.config_file)
             config_tui.run()
         except Exception as e:
-            print(f"{Colors.RED}{Icons.CROSS} Config TUI error: {e}{Colors.RESET}")
+            print(f"{Colors.RED}{icons.CROSS} Config TUI error: {e}{Colors.RESET}")
         return
     
     # Check for environment variable as fallback
