@@ -907,7 +907,7 @@ class mShell:
         
         # Show prompt if no startup command was run
         if not self.startup_command:
-            print(f"{default_colors.get_color('title')}{Icons.SHELL} mShell{Colors.RESET}")
+            print(f"{default_colors.get_color('title')}{icons.SHELL} mShell{Colors.RESET}")
             print(f"{default_colors.get_color('description')}A sleek Python shell{Colors.RESET}\n")
         
         while self.running:
