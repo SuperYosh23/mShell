@@ -1066,13 +1066,19 @@ class ConfigTUI:
             # Title
             title = "mShell Configuration"
             title_x = (w - len(title)) // 2
-            stdscr.addstr(2, title_x, title, curses.color_pair(1) | curses.A_BOLD)
-            stdscr.addstr(3, title_x, "-" * len(title), curses.color_pair(1))
+            # Only display title if it fits within window width
+            if title_x >= 0 and len(title) <= w:
+                stdscr.addstr(2, title_x, title, curses.color_pair(1) | curses.A_BOLD)
+                stdscr.addstr(3, title_x, "-" * len(title), curses.color_pair(1))
             
             # Menu items
             start_y = 8
             for i, (key, description) in enumerate(menu_items):
                 y = start_y + i * 3
+                
+                # Check if we have enough vertical space
+                if y + 1 >= h:
+                    break
                 
                 # Highlight current selection
                 if i == current_selection:
@@ -1091,8 +1097,14 @@ class ConfigTUI:
                     display_value = str(value)
                     if len(display_value) > 40:
                         display_value = display_value[:37] + "..."
-                stdscr.addstr(y + 1, 8, display_value, curses.color_pair(3))
-                stdscr.addstr(y + 1, 8 + len(display_value), f" - {description}", curses.A_DIM)
+                
+                # Check if value fits within window width
+                if 8 + len(display_value) <= w:
+                    stdscr.addstr(y + 1, 8, display_value, curses.color_pair(3))
+                    # Check if description fits
+                    desc_text = f" - {description}"
+                    if 8 + len(display_value) + len(desc_text) <= w:
+                        stdscr.addstr(y + 1, 8 + len(display_value), desc_text, curses.A_DIM)
             
             # Instructions
             instructions = [
@@ -1103,11 +1115,17 @@ class ConfigTUI:
                 "q: Quit"
             ]
             
-            inst_y = h - 4
-            inst_x = 4
-            for instruction in instructions:
-                stdscr.addstr(inst_y, inst_x, instruction, curses.color_pair(1))
-                inst_x += len(instruction) + 4
+            # Only show instructions if we have enough vertical space
+            if h > 6:
+                inst_y = h - 4
+                inst_x = 4
+                for instruction in instructions:
+                    # Check if instruction fits within window width
+                    if inst_x + len(instruction) <= w:
+                        stdscr.addstr(inst_y, inst_x, instruction, curses.color_pair(1))
+                        inst_x += len(instruction) + 4
+                    else:
+                        break  # Stop if we run out of horizontal space
             
             # Handle input
             key = stdscr.getch()
