@@ -1,4 +1,5 @@
 
+
 <h3 style="text-align:center;">IMPORTANT: mShell IS VERY BUGGY AND UNSTABLE.</p>
 <h3 style="text-align:center;"> If you want the same look, it is recommended to use the <a href="https://ohmyz.sh/">Oh-My-Zsh</a> themes included in this repo thet almost perfectly replicate the look of mShell, without the bugs and instability.</p>
 
@@ -8,13 +9,19 @@
 
 
 
-
 <div align="center">
   <img src="https://github.com/SuperYosh23/mShell/blob/main/Untitled%20drawing(10).png?raw=true" alt="Centered image">
 </div>
 
 
 <h3 style="text-align:center;">mShell is a beautifully styled, fully functional Linux shell implemented in Python that features modern Unicode icons, colorful output, and an attractive interface. It supports common shell features including built-in commands, external command execution, pipes, and I/O redirection.</p>
+
+<br><br>
+<h3 style="text-align:center;">Screenshot:</p>
+<div align="center">
+  <img src="https://github.com/SuperYosh23/mShell/blob/main/Screenshot.png?raw=true" alt="Centered image">
+</div>
+<br><br>
 
 ## Features
 
