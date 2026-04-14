@@ -2,6 +2,7 @@
 <h3 style="text-align:center;">IMPORTANT: mShell IS VERY BUGGY AND UNSTABLE.</p>
 <h3 style="text-align:center;"> If you want the same look, it is recommended to use the <a href="https://ohmyz.sh/">Oh-My-Zsh</a> themes included in this repo thet almost perfectly replicate the look of mShell, without the bugs and instability.</p>
 
+<h4 style="text-align:center;">The <a href="https://github.com/kovidgoyal/kitty">kitty</a> terminal emulator is reccomended for both the Oh-My-Zsh themes and the original version of mShell.</p>
 
 <br><br><br>
 
