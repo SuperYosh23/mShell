@@ -1,6 +1,6 @@
 
 <h3 style="text-align:center;">IMPORTANT: mShell IS VERY BUGGY AND UNSTABLE.</p>
-<h3 style="text-align:center;"> If you want the same look, it is recommended to use the <a href="https://ohmyz.sh/">oh-my-zsh</a> themes included in this repo thet almost perfectly replicate the look of mShell, without the bugs and instability.</p>
+<h3 style="text-align:center;"> If you want the same look, it is recommended to use the <a href="https://ohmyz.sh/">Oh-My-Zsh</a> themes included in this repo thet almost perfectly replicate the look of mShell, without the bugs and instability.</p>
 
 
 <br><br><br>
